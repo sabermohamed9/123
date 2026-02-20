@@ -1,4 +1,4 @@
-name: WIN11-ULTRA-SNIPER
+name: WIN11-FINAL-BYPASS
 
 on: 
   workflow_dispatch:
@@ -15,17 +15,16 @@ jobs:
         Start-Process -FilePath .\tailscale-setup.exe -ArgumentList '/quiet /norestart' -Wait
         & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} --advertise-exit-node
 
-    - name: السيطرة على الحساب وتفعيل الـ RDP
+    - name: السيطرة على النظام وتفعيل الـ RDP
       run: |
-        # تغيير كلمة سر المسؤول الأصلي لتجنب مشاكل إنشاء حسابات جديدة
-        $user = "runneradmin"
-        $pass = "Sniper@2026"
-        net user $user $pass
-        # تفعيل الوصول البعيد
+        # تغيير كلمة سر المسؤول الأصلي (قصيرة ومتوافقة)
+        net user runneradmin Sniper@2026
+        # فتح بروتوكول التحكم البعيد
         Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
         Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
 
-    - name: بروتوكول البقاء المستمر (Keep Alive)
+    - name: بروتوكول البقاء (Keep Alive)
       run: |
         for ($i=0; $i -lt 720; $i++) {
           Write-Host "المهمة مستمرة.. دقيقة رقم: $i"

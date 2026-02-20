@@ -1,0 +1,34 @@
+name: WIN11-ULTRA-STRIKE
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  windows_beast:
+    runs-on: windows-latest
+    timeout-minutes: 720 # القوة الكاملة لـ 12 ساعة
+
+    steps:
+    - name: ربط Tailscale وتفعيل الـ Exit Node
+      run: |
+        Invoke-WebRequest https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe -OutFile tailscale-setup.exe
+        Start-Process -FilePath .\tailscale-setup.exe -ArgumentList '/quiet /norestart' -Wait
+        & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} --advertise-exit-node
+
+    - name: السيطرة على الحساب وتفعيل الـ RDP
+      run: |
+        # تغيير كلمة سر المسؤول الحالي (تجنب إنشاء حساب جديد)
+        $admin = "runneradmin"
+        net user $admin Sniper2026!
+        # تفعيل الوصول البعيد وتجاوز جدار الحماية
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+
+    - name: بروتوكول البقاء المستمر (Keep Alive)
+      run: |
+        for ($i=0; $i -lt 720; $i++) {
+          Write-Host "النظام في حالة تشغيل قصوى.. دقيقة رقم: $i"
+          Start-Sleep -Seconds 60
+        }
+        

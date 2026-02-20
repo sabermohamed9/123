@@ -1,0 +1,47 @@
+name: KALI-ULTRA-EXIT-NODE
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  kali_beast:
+    runs-on: ubuntu-latest
+    steps:
+    - name: تفعيل الذاكرة والقدرة (14GB RAM)
+      run: |
+        sudo fallocate -l 10G /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
+
+    - name: إعداد الشبكة للسماح بمرور البيانات (IP Forwarding)
+      run: |
+        echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.conf
+        echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.conf
+        sudo sysctl -p
+
+    - name: تنصيب محرك كالي (Full Everything)
+      run: |
+        wget -q -O - https://archive.kali.org/archive-key.asc | sudo apt-key add -
+        echo "deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" | sudo tee /etc/apt/sources.list
+        sudo apt-get update
+        sudo apt-get install -y kali-desktop-xfce xorg xrdp kali-linux-everything
+
+    - name: تثبيت وربط Tailscale كـ Exit Node
+      run: |
+        curl -fsSL https://tailscale.com/install.sh | sh
+        # تفعيل السيرفر كـ Exit Node مع الـ Auth Key
+        sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} --advertise-exit-node
+
+    - name: إعداد المستخدم والوصول الرسومي
+      run: |
+        sudo adduser sniper --gecos "" --disabled-password
+        echo "sniper:KALI_SNIPER_2026" | sudo chpasswd
+        sudo adduser sniper sudo
+        echo "startxfce4" > /home/sniper/.xsession
+        sudo chown sniper:sniper /home/sniper/.xsession
+        sudo /etc/init.d/xrdp start
+
+    - name: العمل المستمر (12 ساعة)
+      run: sleep 43200
+      

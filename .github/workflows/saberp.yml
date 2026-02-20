@@ -1,0 +1,39 @@
+name: WIN11-ULTRA-EXIT-NODE
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  windows_beast:
+    runs-on: windows-latest
+    timeout-minutes: 720 # العمل لمدة 12 ساعة كاملة
+
+    steps:
+    - name: إعداد نظام Tailscale للربط السحابي
+      run: |
+        Invoke-WebRequest https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe -OutFile tailscale-setup.exe
+        Start-Process -FilePath .\tailscale-setup.exe -ArgumentList '/quiet /norestart' -Wait
+        & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} --advertise-exit-node
+
+    - name: تفعيل ميزات الأداء العالي وتحسين الرام
+      run: |
+        powercfg /s 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c # High Performance
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Session Manager\Memory Management' -Name "PagingFiles" -Value "C:\pagefile.sys 16384 16384"
+
+    - name: فتح بروتوكول RDP للتحكم من الهاتف
+      run: |
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        net user sniper KALI_SNIPER_2026 /add
+        net localgroup "Remote Desktop Users" sniper /add
+        net localgroup "Administrators" sniper /add
+
+    - name: بروتوكول البقاء (العمل المستمر لـ 12 ساعة)
+      run: |
+        $i = 0
+        while($i -lt 720) {
+          Write-Host "النظام يعمل بنجاح.. دقيقة رقم: $i"
+          Start-Sleep -Seconds 60
+          $i++
+        }
+        

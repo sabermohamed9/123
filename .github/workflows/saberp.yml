@@ -1,4 +1,4 @@
-name: WIN11-ULTRA-EXIT-NODE
+name: WIN11-STRIKE-FORCE
 
 on: 
   workflow_dispatch:
@@ -6,33 +6,33 @@ on:
 jobs:
   windows_beast:
     runs-on: windows-latest
-    timeout-minutes: 720 # العمل لمدة 12 ساعة كاملة
+    timeout-minutes: 720 
 
     steps:
-    - name: إعداد نظام Tailscale للربط السحابي
+    - name: ربط Tailscale وتفعيل الـ Exit Node
       run: |
         Invoke-WebRequest https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe -OutFile tailscale-setup.exe
         Start-Process -FilePath .\tailscale-setup.exe -ArgumentList '/quiet /norestart' -Wait
         & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} --advertise-exit-node
 
-    - name: تفعيل ميزات الأداء العالي وتحسين الرام
+    - name: إعداد مستخدم القناص (كلمة سر متوافقة)
       run: |
-        powercfg /s 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c # High Performance
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Session Manager\Memory Management' -Name "PagingFiles" -Value "C:\pagefile.sys 16384 16384"
-
-    - name: فتح بروتوكول RDP للتحكم من الهاتف
-      run: |
-        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
-        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-        net user sniper KALI_SNIPER_2026 /add
+        # كلمة السر أصبحت 12 حرفاً فقط لضمان القبول
+        net user sniper Sniper@2026 /add
         net localgroup "Remote Desktop Users" sniper /add
         net localgroup "Administrators" sniper /add
 
-    - name: بروتوكول البقاء (العمل المستمر لـ 12 ساعة)
+    - name: تفعيل الـ RDP وتجاوز القيود
+      run: |
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+
+    - name: بروتوكول البقاء لـ 12 ساعة
       run: |
         $i = 0
         while($i -lt 720) {
-          Write-Host "النظام يعمل بنجاح.. دقيقة رقم: $i"
+          Write-Host "السيرفر يعمل بكامل طاقته.. دقيقة رقم: $i"
           Start-Sleep -Seconds 60
           $i++
         }
